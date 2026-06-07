@@ -4,210 +4,150 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B&M Record Scout</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0f0f;
-    --surface: #181818;
-    --surface2: #222;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0ede8;
-    --muted: #888;
-    --faint: #444;
-    --accent-hip: #a89aff;
-    --accent-hip-bg: rgba(168,154,255,0.1);
-    --accent-down: #5ecfa8;
-    --accent-down-bg: rgba(94,207,168,0.1);
-    --accent-house: #ff7c50;
-    --accent-house-bg: rgba(255,124,80,0.1);
-    --accent-garage: #f06fa8;
-    --accent-garage-bg: rgba(240,111,168,0.1);
-    --green: #4ade80;
-    --green-bg: rgba(74,222,128,0.1);
-    --amber: #fbbf24;
-    --amber-bg: rgba(251,191,36,0.1);
-    --red: #f87171;
-    --red-bg: rgba(248,113,113,0.1);
-    --blue: #60a5fa;
-    --blue-bg: rgba(96,165,250,0.1);
-    --mono: 'DM Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
+    --bg:#0f0f0f;--surface:#181818;--surface2:#222;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+    --text:#f0ede8;--muted:#888;--faint:#444;
+    --hip:#a89aff;--hip-bg:rgba(168,154,255,0.1);
+    --down:#5ecfa8;--down-bg:rgba(94,207,168,0.1);
+    --house:#ff7c50;--house-bg:rgba(255,124,80,0.1);
+    --garage:#f06fa8;--garage-bg:rgba(240,111,168,0.1);
+    --green:#4ade80;--green-bg:rgba(74,222,128,0.1);
+    --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);
+    --red:#f87171;--red-bg:rgba(248,113,113,0.1);
+    --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);
+    --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 14px; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; line-height: 1.5; }
-
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; border-bottom: 1px solid var(--border);
-    background: var(--bg); position: sticky; top: 0; z-index: 100;
-  }
-  .logo { font-family: var(--mono); font-size: 13px; letter-spacing: .08em; color: var(--text); display: flex; align-items: center; gap: 10px; }
-  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); transition: background .3s; }
-  .live-dot.on { background: var(--green); animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-  .header-right { display: flex; align-items: center; gap: 16px; }
-  .header-stats { display: flex; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .hstat span { color: var(--text); font-weight: 500; }
-  .live-badge {
-    font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
-    padding: 3px 8px; border-radius: 99px;
-    border: 1px solid var(--faint); color: var(--muted);
-    transition: all .3s;
-  }
-  .live-badge.on { border-color: var(--green); color: var(--green); background: var(--green-bg); }
-
-  .app { display: grid; grid-template-columns: 400px 1fr; height: calc(100vh - 49px); overflow: hidden; }
-  @media(max-width:900px) { .app { grid-template-columns: 1fr; height: auto; overflow: visible; } }
-
-  /* LEFT */
-  .tracker { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-  .tracker-head { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 8px; }
-  .tracker-head-title { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; }
-  .filter-pills { display: flex; gap: 4px; }
-  .fpill { padding: 3px 9px; border-radius: 99px; font-size: 11px; font-family: var(--mono); border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
-  .fpill:hover, .fpill.active { border-color: var(--text); color: var(--text); }
-
-  .record-list { flex: 1; overflow-y: auto; }
-  .record-list::-webkit-scrollbar { width: 4px; }
-  .record-list::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
-
-  .rrow { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .12s; }
-  .rrow:hover { background: var(--surface); }
-  .rrow.playing { background: var(--surface2); }
-  .rrow.new-in { animation: flashIn 1.5s ease-out; }
-  @keyframes flashIn { 0%{background:rgba(96,165,250,0.2)} 100%{background:transparent} }
-
-  .rrow-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
-  .rrow-thumb-placeholder { width: 36px; height: 36px; border-radius: 4px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--faint); }
-  .rrow-num { font-family: var(--mono); font-size: 10px; color: var(--faint); width: 16px; text-align: center; flex-shrink: 0; }
-  .rrow-info { flex: 1; min-width: 0; }
-  .rrow-title { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rrow-artist { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rrow-meta { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-
-  .genre-pill { font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 99px; flex-shrink: 0; border: 1px solid transparent; }
-  .source-pill { font-size: 9px; font-family: var(--mono); padding: 1px 5px; border-radius: 99px; flex-shrink: 0; border: 1px solid var(--faint); color: var(--faint); }
-  .verdict-pill { font-size: 9px; font-family: var(--mono); padding: 1px 6px; border-radius: 99px; flex-shrink: 0; border: 1px solid transparent; }
-  .verdict-buy { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-  .verdict-investigate { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
-
-  .score-badge { font-family: var(--mono); font-size: 11px; font-weight: 500; width: 30px; text-align: right; flex-shrink: 0; }
-  .triage-btns { display: flex; gap: 3px; flex-shrink: 0; }
-  .tb { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all .12s; }
-  .tb:hover { border-color: var(--text); color: var(--text); }
-  .tb.t-cart.on { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-  .tb.t-wish.on { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
-  .tb.t-pass.on { background: var(--red-bg); border-color: var(--red); color: var(--red); }
-
-  /* incoming toast */
-  .toast-bar {
-    padding: 8px 14px; border-bottom: 1px solid var(--border);
-    background: var(--blue-bg); display: none; align-items: center;
-    gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--blue);
-    flex-shrink: 0;
-  }
-  .toast-bar.visible { display: flex; }
-
-  .add-form { padding: 8px 12px; border-top: 1px solid var(--border); display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
-  .add-form input, .add-form select { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 12px; padding: 5px 8px; outline: none; transition: border .15s; }
-  .add-form input:focus, .add-form select:focus { border-color: var(--text); }
-  .add-form input::placeholder { color: var(--faint); }
-  .add-form select option { background: #222; }
-  .add-form input.f-title { flex: 1; min-width: 60px; }
-  .add-form input.f-artist { width: 100px; }
-  .add-form select { width: 100px; }
-  .btn-add { background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; color: var(--text); cursor: pointer; font-size: 16px; padding: 0 10px; transition: all .15s; display: flex; align-items: center; }
-  .btn-add:hover { border-color: var(--text); }
-
-  .summary-bar { padding: 7px 14px; border-top: 1px solid var(--border); display: flex; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
-  .sstat { font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
-  .sstat b { color: var(--text); font-weight: 500; }
-
-  /* RIGHT */
-  .player-panel { display: flex; flex-direction: column; overflow: hidden; }
-  .player-head { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; }
-  .np-info { flex: 1; min-width: 0; }
-  .np-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .np-artist { font-size: 11px; color: var(--muted); }
-  .np-reasoning { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .nav-btns { display: flex; gap: 4px; }
-  .nav-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all .15s; }
-  .nav-btn:hover { border-color: var(--text); color: var(--text); }
-  .nav-btn:disabled { opacity: .25; cursor: default; }
-
-  .toggle-wrap { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .toggle { width: 28px; height: 16px; border-radius: 99px; background: var(--surface2); border: 1px solid var(--border2); cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; }
-  .toggle.on { background: var(--green); border-color: var(--green); }
-  .toggle::after { content:''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); transition: all .2s; }
-  .toggle.on::after { left: 14px; background: #000; }
-
-  .yt-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: var(--surface); flex-shrink: 0; }
-  .yt-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
-  .yt-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--faint); font-family: var(--mono); font-size: 12px; text-align: center; padding: 1rem; }
-
-  .ext-links { display: none; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
-  .ext-links.show { display: flex; }
-  .ext-link { display: flex; align-items: center; gap: 5px; font-size: 11px; font-family: var(--mono); padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border2); color: var(--muted); text-decoration: none; cursor: pointer; transition: all .15s; letter-spacing: .03em; }
-  .ext-link:hover { border-color: var(--text); color: var(--text); }
-  .ext-link.shazam { border-color: rgba(0,136,255,.4); color: #4da6ff; }
-  .ext-link.shazam:hover { background: rgba(0,136,255,.1); }
-  .ext-link.spotify { border-color: rgba(29,185,84,.4); color: #1db954; }
-  .ext-link.spotify:hover { background: rgba(29,185,84,.1); }
-  .ext-link.whosampled { border-color: rgba(255,124,80,.4); color: #ff7c50; }
-  .ext-link.whosampled:hover { background: rgba(255,124,80,.1); }
-  .ext-link.discogs { border-color: var(--border2); }
-  .ext-link.rc-link { border-color: rgba(168,154,255,.4); color: var(--accent-hip); }
-  .ext-link.rc-link:hover { background: var(--accent-hip-bg); }
-
-  .triage-bar { display: flex; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .tbig { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all .15s; }
-  .tbig:hover { border-color: var(--text); color: var(--text); }
-  .tbig.pass:hover, .tbig.pass.on { background: var(--red-bg); border-color: var(--red); color: var(--red); }
-  .tbig.wish:hover, .tbig.wish.on { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
-  .tbig.cart:hover, .tbig.cart.on { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-  .tbig:disabled { opacity: .3; cursor: default; }
-
-  .metrics-panel { flex: 1; overflow-y: auto; padding: 14px; }
-  .metrics-panel::-webkit-scrollbar { width: 4px; }
-  .metrics-panel::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 2px; }
-
-  .metrics-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-  .metrics-label { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
-  .match-score { font-family: var(--mono); font-size: 22px; font-weight: 500; }
-
-  /* bookmarklet score breakdown */
-  .bm-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
-  .bm-score-card { background: var(--surface); border-radius: 6px; padding: 8px 10px; }
-  .bm-score-label { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
-  .bm-score-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); }
-  .bm-reasoning { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; padding: 10px 12px; background: var(--surface); border-radius: 6px; border-left: 2px solid var(--border2); }
-
-  .mrow { margin-bottom: 10px; }
-  .mrow-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .mrow-label { font-size: 11px; color: var(--muted); }
-  .mrow-val { font-family: var(--mono); font-size: 11px; color: var(--text); }
-  .bar-wrap { position: relative; height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-bottom: 2px; }
-  .bar-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
-  .bar-profile { height: 2px; background: var(--faint); border-radius: 99px; position: relative; }
-  .bar-profile-marker { position: absolute; top: -4px; width: 1px; height: 10px; background: var(--faint); transform: translateX(-50%); }
-
-  .divider { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--faint); text-transform: uppercase; margin: 14px 0 10px; padding-top: 12px; border-top: 1px solid var(--border); }
-
-  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; color: var(--faint); font-family: var(--mono); font-size: 12px; text-align: center; padding: 2rem; line-height: 1.8; }
-
-  .g-hiphop    { color: var(--accent-hip);   border-color: var(--accent-hip);   background: var(--accent-hip-bg); }
-  .g-downtempo { color: var(--accent-down);   border-color: var(--accent-down);  background: var(--accent-down-bg); }
-  .g-house     { color: var(--accent-house);  border-color: var(--accent-house); background: var(--accent-house-bg); }
-  .g-garage    { color: var(--accent-garage); border-color: var(--accent-garage);background: var(--accent-garage-bg); }
-  .g-unknown   { color: var(--muted);         border-color: var(--faint);        background: transparent; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{font-size:14px;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;min-height:100vh;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--mono);font-size:13px;letter-spacing:.08em;display:flex;align-items:center;gap:10px;}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);transition:background .3s;}
+  .live-dot.on{background:var(--green);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .header-stats{display:flex;gap:16px;font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .hstat span{color:var(--text);font-weight:500;}
+  .live-badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 8px;border-radius:99px;border:1px solid var(--faint);color:var(--muted);transition:all .3s;}
+  .live-badge.on{border-color:var(--green);color:var(--green);background:var(--green-bg);}
+  .app{display:grid;grid-template-columns:400px 1fr;height:calc(100vh - 49px);overflow:hidden;}
+  .tracker{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .tracker-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;}
+  .tracker-head-title{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;}
+  .filter-pills{display:flex;gap:4px;}
+  .fpill{padding:3px 9px;border-radius:99px;font-size:11px;font-family:var(--mono);border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .fpill:hover,.fpill.active{border-color:var(--text);color:var(--text);}
+  .record-list{flex:1;overflow-y:auto;}
+  .record-list::-webkit-scrollbar{width:4px;}
+  .record-list::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
+  .rrow{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+  .rrow:hover{background:var(--surface);}
+  .rrow.playing{background:var(--surface2);}
+  .rrow.new-in{animation:flashIn 2s ease-out;}
+  @keyframes flashIn{0%{background:rgba(96,165,250,0.25)}100%{background:transparent}}
+  .rrow-thumb{width:36px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0;background:var(--surface2);}
+  .rrow-thumb-ph{width:36px;height:36px;border-radius:4px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--faint);}
+  .rrow-num{font-family:var(--mono);font-size:10px;color:var(--faint);width:16px;text-align:center;flex-shrink:0;}
+  .rrow-info{flex:1;min-width:0;}
+  .rrow-title{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rrow-artist{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rrow-meta{display:flex;align-items:center;gap:4px;margin-top:2px;}
+  .genre-pill{font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:99px;flex-shrink:0;border:1px solid transparent;}
+  .verdict-pill{font-size:9px;font-family:var(--mono);padding:1px 6px;border-radius:99px;flex-shrink:0;border:1px solid transparent;}
+  .v-buy{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+  .v-inv{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+  .src-pill{font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:99px;border:1px solid var(--faint);color:var(--faint);}
+  .score-badge{font-family:var(--mono);font-size:11px;font-weight:500;width:30px;text-align:right;flex-shrink:0;}
+  .triage-btns{display:flex;gap:3px;flex-shrink:0;}
+  .tb{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .12s;}
+  .tb:hover{border-color:var(--text);color:var(--text);}
+  .tb.t-cart.on{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+  .tb.t-wish.on{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+  .tb.t-pass.on{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+  .toast-bar{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--blue-bg);display:none;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--blue);flex-shrink:0;}
+  .toast-bar.visible{display:flex;}
+  .add-form{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+  .add-form input,.add-form select{background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--sans);font-size:12px;padding:5px 8px;outline:none;transition:border .15s;}
+  .add-form input:focus,.add-form select:focus{border-color:var(--text);}
+  .add-form input::placeholder{color:var(--faint);}
+  .add-form select option{background:#222;}
+  .f-title{flex:1;min-width:60px;}
+  .f-artist{width:100px;}
+  .add-form select{width:100px;}
+  .btn-add{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);cursor:pointer;font-size:16px;padding:0 10px;transition:all .15s;display:flex;align-items:center;}
+  .btn-add:hover{border-color:var(--text);}
+  .summary-bar{padding:7px 14px;border-top:1px solid var(--border);display:flex;gap:12px;flex-shrink:0;flex-wrap:wrap;}
+  .sstat{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .sstat b{color:var(--text);font-weight:500;}
+  .player-panel{display:flex;flex-direction:column;overflow:hidden;}
+  .player-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;}
+  .np-info{flex:1;min-width:0;}
+  .np-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .np-artist{font-size:11px;color:var(--muted);}
+  .np-reasoning{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nav-btns{display:flex;gap:4px;}
+  .nav-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;}
+  .nav-btn:hover{border-color:var(--text);color:var(--text);}
+  .nav-btn:disabled{opacity:.25;cursor:default;}
+  .toggle-wrap{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .toggle{width:28px;height:16px;border-radius:99px;background:var(--surface2);border:1px solid var(--border2);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+  .toggle.on{background:var(--green);border-color:var(--green);}
+  .toggle::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--muted);transition:all .2s;}
+  .toggle.on::after{left:14px;background:#000;}
+  .yt-wrap{position:relative;width:100%;aspect-ratio:16/9;background:var(--surface);flex-shrink:0;}
+  .yt-wrap iframe{width:100%;height:100%;border:none;display:block;}
+  .yt-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--faint);font-family:var(--mono);font-size:12px;text-align:center;padding:1rem;}
+  .ext-links{display:none;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+  .ext-links.show{display:flex;}
+  .ext-link{display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:99px;border:1px solid var(--border2);color:var(--muted);text-decoration:none;cursor:pointer;transition:all .15s;letter-spacing:.03em;}
+  .ext-link:hover{border-color:var(--text);color:var(--text);}
+  .ext-link.shazam{border-color:rgba(0,136,255,.4);color:#4da6ff;}
+  .ext-link.shazam:hover{background:rgba(0,136,255,.1);}
+  .ext-link.spotify{border-color:rgba(29,185,84,.4);color:#1db954;}
+  .ext-link.spotify:hover{background:rgba(29,185,84,.1);}
+  .ext-link.whosampled{border-color:rgba(255,124,80,.4);color:#ff7c50;}
+  .ext-link.whosampled:hover{background:rgba(255,124,80,.1);}
+  .ext-link.rc-link{border-color:rgba(168,154,255,.4);color:var(--hip);}
+  .ext-link.rc-link:hover{background:var(--hip-bg);}
+  .triage-bar{display:flex;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .tbig{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;}
+  .tbig:hover{border-color:var(--text);color:var(--text);}
+  .tbig.pass:hover,.tbig.pass.on{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+  .tbig.wish:hover,.tbig.wish.on{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+  .tbig.cart:hover,.tbig.cart.on{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+  .tbig:disabled{opacity:.3;cursor:default;}
+  .metrics-panel{flex:1;overflow-y:auto;padding:14px;}
+  .metrics-panel::-webkit-scrollbar{width:4px;}
+  .metrics-panel::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
+  .metrics-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
+  .metrics-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+  .match-score{font-family:var(--mono);font-size:22px;font-weight:500;}
+  .bm-scores{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;}
+  .bm-score-card{background:var(--surface);border-radius:6px;padding:8px 10px;}
+  .bm-score-label{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+  .bm-score-val{font-family:var(--mono);font-size:18px;font-weight:500;}
+  .bm-reasoning{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;padding:10px 12px;background:var(--surface);border-radius:6px;border-left:2px solid var(--border2);}
+  .mrow{margin-bottom:10px;}
+  .mrow-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .mrow-label{font-size:11px;color:var(--muted);}
+  .mrow-val{font-family:var(--mono);font-size:11px;}
+  .bar-wrap{position:relative;height:5px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:2px;}
+  .bar-fill{height:100%;border-radius:99px;transition:width .4s ease;}
+  .bar-profile{height:2px;background:var(--faint);border-radius:99px;position:relative;}
+  .bar-profile-marker{position:absolute;top:-4px;width:1px;height:10px;background:var(--faint);transform:translateX(-50%);}
+  .divider{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--border);}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--faint);font-family:var(--mono);font-size:12px;text-align:center;padding:2rem;line-height:1.8;}
+  .g-hiphop{color:var(--hip);border-color:var(--hip);background:var(--hip-bg);}
+  .g-downtempo{color:var(--down);border-color:var(--down);background:var(--down-bg);}
+  .g-house{color:var(--house);border-color:var(--house);background:var(--house-bg);}
+  .g-garage{color:var(--garage);border-color:var(--garage);background:var(--garage-bg);}
+  .g-unknown{color:var(--muted);border-color:var(--faint);background:transparent;}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <div class="live-dot" id="liveDot"></div>
@@ -223,9 +163,7 @@
     </div>
   </div>
 </header>
-
 <div class="app">
-
   <div class="tracker">
     <div class="tracker-head">
       <span class="tracker-head-title">Queue</span>
@@ -236,9 +174,7 @@
         <button class="fpill" data-filter="wish">Wish</button>
       </div>
     </div>
-    <div class="toast-bar" id="toastBar">
-      <span id="toastMsg">&#9679; Receiving from bookmarklet...</span>
-    </div>
+    <div class="toast-bar" id="toastBar"><span id="toastMsg"></span></div>
     <div class="record-list" id="recordList"></div>
     <div class="add-form">
       <input class="f-title"  id="fTitle"  type="text" placeholder="Title" />
@@ -250,11 +186,10 @@
         <option value="garage">Garage</option>
         <option value="unknown">Unknown</option>
       </select>
-      <button class="btn-add" onclick="addRecord()" title="Add">+</button>
+      <button class="btn-add" onclick="addRecord()">+</button>
     </div>
     <div class="summary-bar" id="summaryBar"></div>
   </div>
-
   <div class="player-panel">
     <div class="player-head">
       <div class="np-info">
@@ -267,461 +202,376 @@
         <button class="nav-btn" id="btnNext" onclick="navigate(1)"  disabled>&#8594;</button>
       </div>
       <div class="toggle-wrap">
-        <div class="toggle on" id="autoToggle" onclick="toggleAuto()"></div>
-        auto
+        <div class="toggle on" id="autoToggle" onclick="toggleAuto()"></div>auto
       </div>
     </div>
-
     <div class="yt-wrap">
       <div class="yt-placeholder" id="ytPlaceholder">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
         click a record to load<br>
-        <span style="font-size:10px;color:var(--faint)">or open bookmarklet on Record City<br>to auto-populate the queue</span>
+        <span style="font-size:10px;">or scan on Record City — records appear automatically</span>
       </div>
-      <iframe id="ytFrame" allow="autoplay; encrypted-media" allowfullscreen style="display:none; width:100%; height:100%; border:none;"></iframe>
+      <iframe id="ytFrame" allow="autoplay; encrypted-media" allowfullscreen style="display:none;width:100%;height:100%;border:none;"></iframe>
     </div>
-
     <div class="ext-links" id="extLinks">
-      <a class="ext-link shazam"      id="linkShazam"      target="_blank" rel="noopener">&#9835; Shazam</a>
-      <a class="ext-link spotify"     id="linkSpotify"     target="_blank" rel="noopener">&#9675; Spotify</a>
-      <a class="ext-link whosampled"  id="linkWhosampled"  target="_blank" rel="noopener">&#8767; WhoSampled</a>
-      <a class="ext-link discogs"     id="linkDiscogs"     target="_blank" rel="noopener">&#9724; Discogs</a>
-      <a class="ext-link rc-link"     id="linkRC"          target="_blank" rel="noopener" style="display:none;">&#8599; Record City</a>
+      <a class="ext-link shazam"     id="linkShazam"     target="_blank" rel="noopener">&#9835; Shazam</a>
+      <a class="ext-link spotify"    id="linkSpotify"    target="_blank" rel="noopener">&#9675; Spotify</a>
+      <a class="ext-link whosampled" id="linkWhosampled" target="_blank" rel="noopener">&#8767; WhoSampled</a>
+      <a class="ext-link"            id="linkDiscogs"    target="_blank" rel="noopener">&#9724; Discogs</a>
+      <a class="ext-link rc-link"    id="linkRC"         target="_blank" rel="noopener" style="display:none;">&#8599; Record City</a>
     </div>
-
     <div class="triage-bar">
       <button class="tbig pass" id="btnPass" onclick="triage('pass')" disabled>&#10005; Pass</button>
       <button class="tbig wish" id="btnWish" onclick="triage('wish')" disabled>&#9829; Wishlist</button>
       <button class="tbig cart" id="btnCart" onclick="triage('cart')" disabled>&#10003; Buy</button>
     </div>
-
     <div class="metrics-panel" id="metricsPanel">
       <div class="empty-state">
-        <div>&#9673; live connection ready</div>
-        <div style="color:var(--faint);font-size:11px;">
+        <div>&#9673; bridge ready</div>
+        <div style="font-size:11px;color:var(--faint);">
           1. open Record City in another tab<br>
           2. drill down to genre / vinyl / latest<br>
-          3. click the B&amp;M bookmarklet<br>
-          4. hit Scan — records flow in automatically
+          3. click the B&amp;M bookmarklet → Scan<br>
+          4. records flow in automatically
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Hidden bridge iframe — shared localStorage relay -->
+<iframe id="bridgeFrame" src="https://nick3825.github.io/bm-scout/bridge.html"
+  style="display:none;width:0;height:0;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+
 <script>
-/* ═══════════════════════════════════════════
-   DATA
-═══════════════════════════════════════════ */
+/* ═══════════════ CONFIG ═══════════════ */
+const BRIDGE_ORIGIN = 'https://nick3825.github.io';
+
 const GENRES = {
-  hiphop:    { label:'Hip Hop',        color:'#a89aff', metrics:['bpm','bass','vocals','energy','danceability','valence'], profile:{bpm:87,bass:.73,vocals:.83,energy:.56,danceability:.73,valence:.44} },
-  downtempo: { label:'Downtempo',      color:'#5ecfa8', metrics:['bpm','valence','danceability','energy','bass','vocals'], profile:{bpm:98,bass:.63,vocals:.38,energy:.53,danceability:.67,valence:.68} },
-  house:     { label:'House / Techno', color:'#ff7c50', metrics:['energy','danceability','bpm','bass','valence','vocals'], profile:{bpm:123,bass:.77,vocals:.17,energy:.80,danceability:.85,valence:.58} },
-  garage:    { label:'Garage / UKG',   color:'#f06fa8', metrics:['danceability','bass','bpm','vocals','valence','energy'], profile:{bpm:132,bass:.77,vocals:.89,energy:.76,danceability:.85,valence:.72} },
-  unknown:   { label:'Unknown',        color:'#888',    metrics:['bpm','bass','vocals','energy','danceability','valence'], profile:{bpm:100,bass:.65,vocals:.60,energy:.60,danceability:.65,valence:.55} }
+  hiphop:    {label:'Hip Hop',        color:'#a89aff',metrics:['bpm','bass','vocals','energy','danceability','valence'],profile:{bpm:87,bass:.73,vocals:.83,energy:.56,danceability:.73,valence:.44}},
+  downtempo: {label:'Downtempo',      color:'#5ecfa8',metrics:['bpm','valence','danceability','energy','bass','vocals'],profile:{bpm:98,bass:.63,vocals:.38,energy:.53,danceability:.67,valence:.68}},
+  house:     {label:'House / Techno', color:'#ff7c50',metrics:['energy','danceability','bpm','bass','valence','vocals'],profile:{bpm:123,bass:.77,vocals:.17,energy:.80,danceability:.85,valence:.58}},
+  garage:    {label:'Garage / UKG',   color:'#f06fa8',metrics:['danceability','bass','bpm','vocals','valence','energy'],profile:{bpm:132,bass:.77,vocals:.89,energy:.76,danceability:.85,valence:.72}},
+  unknown:   {label:'Unknown',        color:'#888',   metrics:['bpm','bass','vocals','energy','danceability','valence'],profile:{bpm:100,bass:.65,vocals:.60,energy:.60,danceability:.65,valence:.55}}
 };
-
 const META = {
-  bpm:{label:'BPM',min:60,max:180}, energy:{label:'Energy',min:0,max:1},
-  bass:{label:'Bass weight',min:0,max:1}, danceability:{label:'Danceability',min:0,max:1},
-  valence:{label:'Valence / mood',min:0,max:1}, vocals:{label:'Vocal presence',min:0,max:1}
+  bpm:{label:'BPM',min:60,max:180},energy:{label:'Energy',min:0,max:1},
+  bass:{label:'Bass weight',min:0,max:1},danceability:{label:'Danceability',min:0,max:1},
+  valence:{label:'Valence / mood',min:0,max:1},vocals:{label:'Vocal presence',min:0,max:1}
 };
-
 const GENRE_NOTES = {
-  hiphop:    'BPM 80–100 is the pocket. Bass + vocal presence are primary. NZ buyers want headnod energy.',
-  downtempo: 'Valence and danceability lead. Open, euphoric feel. Instrumental complexity over vocals.',
-  house:     'Energy + danceability first. BPM 120–135 house, 130–145 techno. Valence splits euphoric vs dark.',
-  garage:    'Swing = danceability + bass together. Vocal presence (chopped, pitched) is genre-defining.',
-  unknown:   'Genre not yet classified — use your ear and reassign after listening.'
+  hiphop:'BPM 80–100 is the pocket. Bass + vocal presence are primary. NZ buyers want headnod energy.',
+  downtempo:'Valence and danceability lead. Open, euphoric feel. Instrumental complexity over vocals.',
+  house:'Energy + danceability first. BPM 120–135 house, 130–145 techno. Valence splits euphoric vs dark.',
+  garage:'Swing = danceability + bass together. Vocal presence (chopped, pitched) is genre-defining.',
+  unknown:'Genre not yet classified — use your ear and reassign after listening.'
 };
 
-/* ═══════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════ */
-let records     = [];
-let currentId   = null;
-let nextId      = 1000;
-let autoAdvance = true;
-let activeFilter= 'all';
+/* ═══════════════ STATE ═══════════════ */
+let records = [], currentId = null, nextId = 1000, autoAdvance = true, activeFilter = 'all';
+let bridgeReady = false, lastBridgeTs = '0';
 
-function saveAll() {
-  try { localStorage.setItem('bm_records', JSON.stringify(records)); } catch(e){}
-}
-function loadAll() {
-  try {
-    const s = localStorage.getItem('bm_records');
-    if (s) { records = JSON.parse(s); nextId = Math.max(1000, ...records.map(r=>r.id)) + 1; }
-  } catch(e) {}
+function saveAll(){try{localStorage.setItem('bm_records',JSON.stringify(records));}catch(e){}}
+function loadAll(){
+  try{
+    const s=localStorage.getItem('bm_records');
+    if(s){records=JSON.parse(s);nextId=Math.max(1000,...records.map(r=>r.id))+1;}
+  }catch(e){}
 }
 
-/* ═══════════════════════════════════════════
-   BROADCASTCHANNEL LISTENER
-   Receives records pushed by the bookmarklet
-═══════════════════════════════════════════ */
-let liveConnected = false;
+/* ═══════════════ BRIDGE (iframe postMessage) ═══════════════ */
+const bridge = document.getElementById('bridgeFrame');
 
-function initLiveChannel() {
-  try {
-    const ch = new BroadcastChannel('bm_scout_channel');
-    ch.onmessage = function(e) {
-      const msg = e.data;
-      if (!msg || msg.type !== 'bm_records') return;
+window.addEventListener('message', function(e) {
+  if (e.origin !== BRIDGE_ORIGIN) return;
+  const msg = e.data;
+
+  // Bridge ready
+  if (msg.bm_ready) {
+    bridgeReady = true;
+    setLiveStatus(false); // waiting, not connected yet
+    // Start polling for incoming records
+    pollBridge();
+    setInterval(pollBridge, 3000);
+    return;
+  }
+
+  // Data from bridge read
+  if (msg.bm_data !== undefined) {
+    try {
+      if (msg.bm_ts === lastBridgeTs) return; // nothing new
+      lastBridgeTs = msg.bm_ts;
+      const incoming = JSON.parse(msg.bm_data || '[]');
+      if (!incoming.length) return;
 
       setLiveStatus(true);
-      const incoming = msg.records || [];
       let added = 0;
-
       incoming.forEach(function(rec) {
-        // dedupe by title+artist
-        const exists = records.some(function(r) {
-          return r.title.toLowerCase() === (rec.title||'').toLowerCase() &&
-                 r.artist.toLowerCase() === (rec.artist||'').toLowerCase();
+        const exists = records.some(function(r){
+          return r.title.toLowerCase()===(rec.title||'').toLowerCase() &&
+                 r.artist.toLowerCase()===(rec.artist||'').toLowerCase();
         });
         if (exists) return;
-
         const genre = guessGenre(rec.title, rec.artist);
-        const g = GENRES[genre];
-        const p = g.profile;
-
+        const p = (GENRES[genre]||GENRES.unknown).profile;
         records.push({
-          id:          nextId++,
-          title:       rec.title || '?',
-          artist:      rec.artist || '',
-          genre:       genre,
-          status:      'none',
-          source:      'bookmarklet',
-          rcLink:      rec.link || '',
-          img:         rec.img  || '',
-          verdict:     rec.verdict || '',
-          reasoning:   rec.reasoning || '',
-          bmScores:    rec.scores || {},
-          bmAvg:       rec.avg || 0,
-          // seed audio metrics from genre profile ± small variance
-          bpm:          ri(Math.round(p.bpm*.88), Math.round(p.bpm*1.12)),
-          bass:         rf(Math.max(0,p.bass-.18),         Math.min(1,p.bass+.18)),
-          vocals:       rf(Math.max(0,p.vocals-.18),       Math.min(1,p.vocals+.18)),
-          energy:       rf(Math.max(0,p.energy-.18),       Math.min(1,p.energy+.18)),
-          danceability: rf(Math.max(0,p.danceability-.18), Math.min(1,p.danceability+.18)),
-          valence:      rf(Math.max(0,p.valence-.18),      Math.min(1,p.valence+.18))
+          id:nextId++, title:rec.title||'?', artist:rec.artist||'',
+          genre:genre, status:'none', source:'bookmarklet',
+          rcLink:rec.link||'', img:rec.img||'',
+          verdict:rec.verdict||'', reasoning:rec.reasoning||'',
+          bmScores:rec.scores||{}, bmAvg:rec.avg||0,
+          bpm:ri(Math.round(p.bpm*.88),Math.round(p.bpm*1.12)),
+          bass:rf(Math.max(0,p.bass-.18),Math.min(1,p.bass+.18)),
+          vocals:rf(Math.max(0,p.vocals-.18),Math.min(1,p.vocals+.18)),
+          energy:rf(Math.max(0,p.energy-.18),Math.min(1,p.energy+.18)),
+          danceability:rf(Math.max(0,p.danceability-.18),Math.min(1,p.danceability+.18)),
+          valence:rf(Math.max(0,p.valence-.18),Math.min(1,p.valence+.18))
         });
         added++;
       });
-
       if (added > 0) {
         saveAll();
-        showToast(added + ' record' + (added>1?'s':'') + ' received from bookmarklet');
+        showToast(added+' record'+(added>1?'s':'')+' received from bookmarklet');
         renderList();
-        // auto-load first new record if nothing playing
         if (!currentId) {
-          const first = records.find(function(r){ return r.source==='bookmarklet' && r.status==='none'; });
+          const first = records.find(function(r){return r.source==='bookmarklet'&&r.status==='none';});
           if (first) loadRecord(first.id);
         }
       }
-    };
-  } catch(e) {
-    console.log('BroadcastChannel not supported:', e);
+    } catch(err) { console.log('Bridge parse error:', err); }
   }
+});
+
+function pollBridge() {
+  if (!bridgeReady) return;
+  bridge.contentWindow.postMessage({bm_action:'read'}, BRIDGE_ORIGIN);
 }
 
-function setLiveStatus(on) {
-  liveConnected = on;
-  document.getElementById('liveDot').className   = 'live-dot' + (on?' on':'');
-  const badge = document.getElementById('liveBadge');
-  badge.className = 'live-badge' + (on?' on':'');
-  badge.textContent = on ? 'bookmarklet connected' : 'waiting for bookmarklet';
+/* ═══════════════ HELPERS ═══════════════ */
+function norm(k,v){const m=META[k];return Math.max(0,Math.min(1,(v-m.min)/(m.max-m.min)));}
+function matchScore(r){
+  const g=GENRES[r.genre]||GENRES.unknown;
+  let t=0;g.metrics.forEach(function(k){t+=Math.abs(norm(k,g.profile[k])-norm(k,r[k]));});
+  return Math.round(Math.max(0,1-t/g.metrics.length)*100);
 }
-
-function showToast(msg) {
-  const bar = document.getElementById('toastBar');
-  document.getElementById('toastMsg').textContent = '\u25CF ' + msg;
+function scoreColor(s){return s>=70?'#4ade80':s>=45?'#fbbf24':'#f87171';}
+function rf(a,b){return Math.round((a+Math.random()*(b-a))*100)/100;}
+function ri(a,b){return Math.round(a+Math.random()*(b-a));}
+function guessGenre(title,artist){
+  const t=(title+' '+artist).toLowerCase();
+  if(/hip.?hop|rap|boom.?bap|r&b|rnb/.test(t))return'hiphop';
+  if(/balear|chill|ambient|downtempo|trip.?hop/.test(t))return'downtempo';
+  if(/house|techno|acid|deep house/.test(t))return'house';
+  if(/garage|ukg|uk garage|grime|bassline/.test(t))return'garage';
+  return'unknown';
+}
+function setLiveStatus(on){
+  document.getElementById('liveDot').className='live-dot'+(on?' on':'');
+  const b=document.getElementById('liveBadge');
+  b.className='live-badge'+(on?' on':'');
+  b.textContent=on?'bookmarklet connected':'waiting for bookmarklet';
+}
+function showToast(msg){
+  const bar=document.getElementById('toastBar');
+  document.getElementById('toastMsg').textContent='\u25CF '+msg;
   bar.classList.add('visible');
-  setTimeout(function(){ bar.classList.remove('visible'); }, 4000);
+  setTimeout(function(){bar.classList.remove('visible');},4000);
 }
 
-/* ═══════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════ */
-function norm(key,v){ const m=META[key]; return Math.max(0,Math.min(1,(v-m.min)/(m.max-m.min))); }
-
-function matchScore(r) {
-  const g = GENRES[r.genre] || GENRES.unknown;
-  let total = 0;
-  g.metrics.forEach(function(k){ total += Math.abs(norm(k,g.profile[k]) - norm(k,r[k])); });
-  return Math.round(Math.max(0, 1 - total/g.metrics.length) * 100);
-}
-
-function scoreColor(s){ return s>=70?'#4ade80':s>=45?'#fbbf24':'#f87171'; }
-function rf(a,b){ return Math.round((a+Math.random()*(b-a))*100)/100; }
-function ri(a,b){ return Math.round(a+Math.random()*(b-a)); }
-
-function guessGenre(title, artist) {
-  const t = (title+' '+artist).toLowerCase();
-  if (/hip.?hop|rap|boom.?bap|r&b|rnb/.test(t))           return 'hiphop';
-  if (/balear|chill|ambient|downtempo|trip.?hop/.test(t))  return 'downtempo';
-  if (/house|techno|acid|deep house|garage house/.test(t)) return 'house';
-  if (/garage|ukg|uk garage|grime|bassline/.test(t))       return 'garage';
-  return 'unknown';
-}
-
-/* ═══════════════════════════════════════════
-   RENDER LIST
-═══════════════════════════════════════════ */
-function renderList() {
-  const el = document.getElementById('recordList');
-  let vis = records;
-  if (activeFilter !== 'all') vis = records.filter(function(r){ return r.status===activeFilter; });
-
-  if (!vis.length) {
-    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:11px;line-height:1.8;">no records yet<br><span style="font-size:10px;">open the bookmarklet on Record City<br>or add one manually below</span></div>';
-    renderStats(); return;
+/* ═══════════════ RENDER ═══════════════ */
+function renderList(){
+  const el=document.getElementById('recordList');
+  let vis=records;
+  if(activeFilter!=='all')vis=records.filter(function(r){return r.status===activeFilter;});
+  if(!vis.length){
+    el.innerHTML='<div style="padding:24px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:11px;line-height:1.8;">no records yet<br><span style="font-size:10px;">scan on Record City or add manually</span></div>';
+    renderStats();return;
   }
-
-  el.innerHTML = '';
-  vis.forEach(function(r, i) {
-    const g  = GENRES[r.genre] || GENRES.unknown;
-    const sc = matchScore(r);
-    const row = document.createElement('div');
-    row.className = 'rrow' + (r.id===currentId?' playing':'');
-
-    const thumb = r.img
-      ? '<img class="rrow-thumb" src="'+r.img+'" alt="" loading="lazy">'
-      : '<div class="rrow-thumb-placeholder">&#9673;</div>';
-
-    const verdictHtml = r.verdict
-      ? '<span class="verdict-pill verdict-'+(r.verdict.toLowerCase().includes('buy')?'buy':'investigate')+'">'+r.verdict+'</span>'
-      : '';
-
-    const sourceHtml = r.source==='bookmarklet'
-      ? '<span class="source-pill">RC</span>'
-      : '';
-
-    row.innerHTML =
+  el.innerHTML='';
+  vis.forEach(function(r,i){
+    const g=GENRES[r.genre]||GENRES.unknown;
+    const sc=matchScore(r);
+    const row=document.createElement('div');
+    row.className='rrow'+(r.id===currentId?' playing':'');
+    const thumb=r.img?'<img class="rrow-thumb" src="'+r.img+'" alt="" loading="lazy">':'<div class="rrow-thumb-ph">&#9673;</div>';
+    const vp=r.verdict?'<span class="verdict-pill '+(r.verdict.toLowerCase().includes('buy')?'v-buy':'v-inv')+'">'+r.verdict+'</span>':'';
+    const sp=r.source==='bookmarklet'?'<span class="src-pill">RC</span>':'';
+    row.innerHTML=
       '<span class="rrow-num">'+(r.id===currentId?'&#9654;':i+1)+'</span>'+
       thumb+
       '<div class="rrow-info">'+
         '<div class="rrow-title">'+r.title+'</div>'+
         '<div class="rrow-artist">'+r.artist+'</div>'+
-        '<div class="rrow-meta">'+
-          '<span class="genre-pill g-'+r.genre+'">'+g.label+'</span>'+
-          verdictHtml+sourceHtml+
-        '</div>'+
+        '<div class="rrow-meta"><span class="genre-pill g-'+r.genre+'">'+g.label+'</span>'+vp+sp+'</div>'+
       '</div>'+
       '<span class="score-badge" style="color:'+scoreColor(sc)+'">'+sc+'%</span>'+
       '<div class="triage-btns">'+
-        '<button class="tb t-cart'+(r.status==='cart'?' on':'')+'" title="Buy"      onclick="event.stopPropagation();setStatus('+r.id+',\'cart\')">&#10003;</button>'+
-        '<button class="tb t-wish'+(r.status==='wish'?' on':'')+'" title="Wishlist" onclick="event.stopPropagation();setStatus('+r.id+',\'wish\')">&#9829;</button>'+
-        '<button class="tb t-pass'+(r.status==='pass'?' on':'')+'" title="Pass"     onclick="event.stopPropagation();setStatus('+r.id+',\'pass\')">&#10005;</button>'+
+        '<button class="tb t-cart'+(r.status==='cart'?' on':'')+'" onclick="event.stopPropagation();setStatus('+r.id+',\'cart\')">&#10003;</button>'+
+        '<button class="tb t-wish'+(r.status==='wish'?' on':'')+'" onclick="event.stopPropagation();setStatus('+r.id+',\'wish\')">&#9829;</button>'+
+        '<button class="tb t-pass'+(r.status==='pass'?' on':'')+'" onclick="event.stopPropagation();setStatus('+r.id+',\'pass\')">&#10005;</button>'+
       '</div>';
-
-    row.onclick = function(){ loadRecord(r.id); };
+    row.onclick=function(){loadRecord(r.id);};
     el.appendChild(row);
   });
   renderStats();
 }
 
-function renderStats() {
-  const cart  = records.filter(function(r){return r.status==='cart';}).length;
-  const wish  = records.filter(function(r){return r.status==='wish';}).length;
-  const pass  = records.filter(function(r){return r.status==='pass';}).length;
-  const none  = records.filter(function(r){return r.status==='none';}).length;
-  document.getElementById('hStatQueue').textContent = records.length;
-  document.getElementById('hStatCart').textContent  = cart;
-  document.getElementById('hStatWish').textContent  = wish;
-  document.getElementById('hStatPass').textContent  = pass;
-  document.getElementById('summaryBar').innerHTML =
+function renderStats(){
+  const cart=records.filter(function(r){return r.status==='cart';}).length;
+  const wish=records.filter(function(r){return r.status==='wish';}).length;
+  const pass=records.filter(function(r){return r.status==='pass';}).length;
+  const none=records.filter(function(r){return r.status==='none';}).length;
+  document.getElementById('hStatQueue').textContent=records.length;
+  document.getElementById('hStatCart').textContent=cart;
+  document.getElementById('hStatWish').textContent=wish;
+  document.getElementById('hStatPass').textContent=pass;
+  document.getElementById('summaryBar').innerHTML=
     '<div class="sstat">&#10003; <b style="color:var(--green)">'+cart+'</b> buy</div>'+
     '<div class="sstat">&#9829; <b style="color:var(--amber)">'+wish+'</b> wish</div>'+
     '<div class="sstat">&#10005; <b style="color:var(--red)">'+pass+'</b> pass</div>'+
     '<div class="sstat">&#9675; <b>'+none+'</b> unheard</div>';
 }
 
-/* ═══════════════════════════════════════════
-   LOAD RECORD INTO PLAYER
-═══════════════════════════════════════════ */
-function loadRecord(id) {
-  const r = records.find(function(x){return x.id===id;});
-  if (!r) return;
-  currentId = id;
-  try { localStorage.setItem('bm_current', id); } catch(e){}
-
-  const g = GENRES[r.genre] || GENRES.unknown;
-
-  document.getElementById('npTitle').textContent   = r.title;
-  document.getElementById('npArtist').textContent  = r.artist + (g?' · '+g.label:'');
-  document.getElementById('npReasoning').textContent = r.reasoning || '';
-
-  // YouTube
-  const q = encodeURIComponent(r.title+' '+r.artist);
-  const frame = document.getElementById('ytFrame');
-  frame.src = 'https://www.youtube.com/embed?listType=search&list='+q+'&autoplay=1&rel=0';
-  frame.style.display = 'block';
-  document.getElementById('ytPlaceholder').style.display = 'none';
-
-  // External links
-  const sq = encodeURIComponent(r.artist+' '+r.title);
-  document.getElementById('linkShazam').href     = 'https://www.shazam.com/search?q='+sq;
-  document.getElementById('linkSpotify').href    = 'https://open.spotify.com/search/'+sq;
-  document.getElementById('linkWhosampled').href = 'https://www.whosampled.com/search/?q='+sq;
-  document.getElementById('linkDiscogs').href    = 'https://www.discogs.com/search/?q='+sq+'&type=release&format=vinyl';
-
-  const rcBtn = document.getElementById('linkRC');
-  if (r.rcLink) { rcBtn.href = r.rcLink; rcBtn.style.display='flex'; }
-  else           { rcBtn.style.display = 'none'; }
-
+/* ═══════════════ PLAYER ═══════════════ */
+function loadRecord(id){
+  const r=records.find(function(x){return x.id===id;});
+  if(!r)return;
+  currentId=id;
+  try{localStorage.setItem('bm_current',id);}catch(e){}
+  const g=GENRES[r.genre]||GENRES.unknown;
+  document.getElementById('npTitle').textContent=r.title;
+  document.getElementById('npArtist').textContent=r.artist+(g?' · '+g.label:'');
+  document.getElementById('npReasoning').textContent=r.reasoning||'';
+  const q=encodeURIComponent(r.title+' '+r.artist);
+  const frame=document.getElementById('ytFrame');
+  frame.src='https://www.youtube.com/embed?listType=search&list='+q+'&autoplay=1&rel=0';
+  frame.style.display='block';
+  document.getElementById('ytPlaceholder').style.display='none';
+  const sq=encodeURIComponent(r.artist+' '+r.title);
+  document.getElementById('linkShazam').href='https://www.shazam.com/search?q='+sq;
+  document.getElementById('linkSpotify').href='https://open.spotify.com/search/'+sq;
+  document.getElementById('linkWhosampled').href='https://www.whosampled.com/search/?q='+sq;
+  document.getElementById('linkDiscogs').href='https://www.discogs.com/search/?q='+sq+'&type=release&format=vinyl';
+  const rcBtn=document.getElementById('linkRC');
+  if(r.rcLink){rcBtn.href=r.rcLink;rcBtn.style.display='flex';}
+  else{rcBtn.style.display='none';}
   document.getElementById('extLinks').classList.add('show');
-
-  // Triage
   updateTriageBtns(r);
-
-  // Nav
-  const ids = records.map(function(x){return x.id;});
-  const idx = ids.indexOf(id);
-  document.getElementById('btnPrev').disabled = idx<=0;
-  document.getElementById('btnNext').disabled = idx>=ids.length-1;
-
+  const ids=records.map(function(x){return x.id;});
+  const idx=ids.indexOf(id);
+  document.getElementById('btnPrev').disabled=idx<=0;
+  document.getElementById('btnNext').disabled=idx>=ids.length-1;
   renderMetrics(r);
   renderList();
 }
 
-function updateTriageBtns(r) {
+function updateTriageBtns(r){
   ['Pass','Wish','Cart'].forEach(function(s){
-    const btn = document.getElementById('btn'+s);
-    btn.disabled = false;
-    btn.classList.toggle('on', r.status===s.toLowerCase());
+    const btn=document.getElementById('btn'+s);
+    btn.disabled=false;
+    btn.classList.toggle('on',r.status===s.toLowerCase());
   });
 }
 
-/* ═══════════════════════════════════════════
-   METRICS PANEL
-═══════════════════════════════════════════ */
-function renderMetrics(r) {
-  const g  = GENRES[r.genre] || GENRES.unknown;
-  const sc = matchScore(r);
-  let html = '';
-
-  // If record came from bookmarklet, show its AI scores first
-  if (r.bmScores && Object.keys(r.bmScores).length) {
-    html += '<div class="metrics-head"><span class="metrics-label">Bookmarklet scores</span><span class="match-score" style="color:'+scoreColor(Math.round(r.bmAvg*10))+'">'+r.bmAvg.toFixed(1)+'/10</span></div>';
-    html += '<div class="bm-scores">';
-    const labels = {demand:'Demand',dj_value:'DJ Value',rarity:'Rarity',bm_fit:'B&M Fit'};
+function renderMetrics(r){
+  const g=GENRES[r.genre]||GENRES.unknown;
+  const sc=matchScore(r);
+  let html='';
+  if(r.bmScores&&Object.keys(r.bmScores).length){
+    html+='<div class="metrics-head"><span class="metrics-label">Bookmarklet scores</span><span class="match-score" style="color:'+scoreColor(Math.round(r.bmAvg*10))+'">'+r.bmAvg.toFixed(1)+'/10</span></div>';
+    html+='<div class="bm-scores">';
+    const labels={demand:'Demand',dj_value:'DJ Value',rarity:'Rarity',bm_fit:'B&M Fit'};
     Object.keys(labels).forEach(function(k){
-      const v = r.bmScores[k] || 0;
-      html += '<div class="bm-score-card"><div class="bm-score-label">'+labels[k]+'</div><div class="bm-score-val" style="color:'+scoreColor(v*10)+'">'+v+'</div></div>';
+      const v=r.bmScores[k]||0;
+      html+='<div class="bm-score-card"><div class="bm-score-label">'+labels[k]+'</div><div class="bm-score-val" style="color:'+scoreColor(v*10)+'">'+v+'</div></div>';
     });
-    html += '</div>';
-    if (r.reasoning) html += '<div class="bm-reasoning">'+r.reasoning+'</div>';
-    html += '<div class="divider">Audio fingerprint · '+g.label+'</div>';
+    html+='</div>';
+    if(r.reasoning)html+='<div class="bm-reasoning">'+r.reasoning+'</div>';
+    html+='<div class="divider">Audio fingerprint · '+g.label+'</div>';
   } else {
-    html += '<div class="metrics-head"><span class="metrics-label">Audio fingerprint · '+g.label+'</span><span class="match-score" style="color:'+scoreColor(sc)+'">'+sc+'%</span></div>';
+    html+='<div class="metrics-head"><span class="metrics-label">Audio fingerprint · '+g.label+'</span><span class="match-score" style="color:'+scoreColor(sc)+'">'+sc+'%</span></div>';
   }
-
   g.metrics.forEach(function(k){
-    const m   = META[k];
-    const rN  = Math.round(norm(k, r[k])*100);
-    const pN  = Math.round(norm(k, g.profile[k])*100);
-    const disp= k==='bpm' ? r[k] : Math.round(r[k]*100)+'%';
-    const diff= Math.abs(rN-pN);
-    const col = diff<12?'#4ade80':diff<25?'#fbbf24':'#f87171';
-    html +=
-      '<div class="mrow">'+
-        '<div class="mrow-head"><span class="mrow-label">'+m.label+'</span><span class="mrow-val" style="color:'+col+'">'+disp+'</span></div>'+
-        '<div class="bar-wrap"><div class="bar-fill" style="width:'+rN+'%;background:'+g.color+'"></div></div>'+
-        '<div class="bar-profile"><div class="bar-profile-marker" style="left:'+pN+'%"></div></div>'+
-      '</div>';
+    const m=META[k];
+    const rN=Math.round(norm(k,r[k])*100);
+    const pN=Math.round(norm(k,g.profile[k])*100);
+    const disp=k==='bpm'?r[k]:Math.round(r[k]*100)+'%';
+    const diff=Math.abs(rN-pN);
+    const col=diff<12?'#4ade80':diff<25?'#fbbf24':'#f87171';
+    html+='<div class="mrow"><div class="mrow-head"><span class="mrow-label">'+m.label+'</span><span class="mrow-val" style="color:'+col+'">'+disp+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+rN+'%;background:'+g.color+'"></div></div><div class="bar-profile"><div class="bar-profile-marker" style="left:'+pN+'%"></div></div></div>';
   });
-
-  html += '<div class="divider">Genre note</div>';
-  html += '<div style="font-size:11px;color:var(--muted);line-height:1.7;">'+GENRE_NOTES[r.genre||'unknown']+'</div>';
-
-  document.getElementById('metricsPanel').innerHTML = html;
+  html+='<div class="divider">Genre note</div><div style="font-size:11px;color:var(--muted);line-height:1.7;">'+GENRE_NOTES[r.genre||'unknown']+'</div>';
+  document.getElementById('metricsPanel').innerHTML=html;
 }
 
-/* ═══════════════════════════════════════════
-   ACTIONS
-═══════════════════════════════════════════ */
-function triage(status) {
-  if (!currentId) return;
-  setStatus(currentId, status);
-  if (autoAdvance) navigate(1);
+/* ═══════════════ ACTIONS ═══════════════ */
+function triage(status){
+  if(!currentId)return;
+  setStatus(currentId,status);
+  if(autoAdvance)navigate(1);
 }
-
-function setStatus(id, status) {
-  const r = records.find(function(x){return x.id===id;});
-  if (!r) return;
-  r.status = r.status===status ? 'none' : status;
-  saveAll();
-  renderList();
-  if (id===currentId) { updateTriageBtns(r); renderMetrics(r); }
+function setStatus(id,status){
+  const r=records.find(function(x){return x.id===id;});
+  if(!r)return;
+  r.status=r.status===status?'none':status;
+  saveAll();renderList();
+  if(id===currentId){updateTriageBtns(r);renderMetrics(r);}
 }
-
-function navigate(dir) {
-  const ids = records.map(function(r){return r.id;});
-  const idx = ids.indexOf(currentId);
-  const ni  = idx+dir;
-  if (ni>=0 && ni<ids.length) loadRecord(ids[ni]);
+function navigate(dir){
+  const ids=records.map(function(r){return r.id;});
+  const idx=ids.indexOf(currentId);
+  const ni=idx+dir;
+  if(ni>=0&&ni<ids.length)loadRecord(ids[ni]);
 }
-
-function toggleAuto() {
-  autoAdvance = !autoAdvance;
-  document.getElementById('autoToggle').classList.toggle('on', autoAdvance);
+function toggleAuto(){
+  autoAdvance=!autoAdvance;
+  document.getElementById('autoToggle').classList.toggle('on',autoAdvance);
 }
-
-function addRecord() {
-  const t = document.getElementById('fTitle').value.trim();
-  const a = document.getElementById('fArtist').value.trim();
-  const g = document.getElementById('fGenre').value;
-  if (!t||!a) { document.getElementById('fTitle').focus(); return; }
-  const p = (GENRES[g]||GENRES.unknown).profile;
-  const r = {
-    id:nextId++, title:t, artist:a, genre:g, status:'none', source:'manual',
-    rcLink:'', img:'', verdict:'', reasoning:'', bmScores:{}, bmAvg:0,
+function addRecord(){
+  const t=document.getElementById('fTitle').value.trim();
+  const a=document.getElementById('fArtist').value.trim();
+  const g=document.getElementById('fGenre').value;
+  if(!t||!a){document.getElementById('fTitle').focus();return;}
+  const p=(GENRES[g]||GENRES.unknown).profile;
+  const r={id:nextId++,title:t,artist:a,genre:g,status:'none',source:'manual',
+    rcLink:'',img:'',verdict:'',reasoning:'',bmScores:{},bmAvg:0,
     bpm:ri(Math.round(p.bpm*.88),Math.round(p.bpm*1.12)),
     bass:rf(Math.max(0,p.bass-.18),Math.min(1,p.bass+.18)),
     vocals:rf(Math.max(0,p.vocals-.18),Math.min(1,p.vocals+.18)),
     energy:rf(Math.max(0,p.energy-.18),Math.min(1,p.energy+.18)),
     danceability:rf(Math.max(0,p.danceability-.18),Math.min(1,p.danceability+.18)),
-    valence:rf(Math.max(0,p.valence-.18),Math.min(1,p.valence+.18))
-  };
-  records.push(r); saveAll();
+    valence:rf(Math.max(0,p.valence-.18),Math.min(1,p.valence+.18))};
+  records.push(r);saveAll();
   document.getElementById('fTitle').value='';
   document.getElementById('fArtist').value='';
-  renderList(); loadRecord(r.id);
+  renderList();loadRecord(r.id);
 }
 
-/* ═══════════════════════════════════════════
-   FILTER PILLS
-═══════════════════════════════════════════ */
 document.querySelectorAll('.fpill').forEach(function(btn){
-  btn.onclick = function(){
+  btn.onclick=function(){
     document.querySelectorAll('.fpill').forEach(function(b){b.classList.remove('active');});
     btn.classList.add('active');
-    activeFilter = btn.dataset.filter;
+    activeFilter=btn.dataset.filter;
     renderList();
   };
 });
 
-/* ═══════════════════════════════════════════
-   KEYBOARD SHORTCUTS
-═══════════════════════════════════════════ */
-document.addEventListener('keydown', function(e){
-  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
-  if (e.key==='ArrowRight'||e.key==='n') navigate(1);
-  if (e.key==='ArrowLeft' ||e.key==='p') navigate(-1);
-  if (e.key==='b') triage('cart');
-  if (e.key==='w') triage('wish');
-  if (e.key==='x') triage('pass');
+document.addEventListener('keydown',function(e){
+  if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;
+  if(e.key==='ArrowRight'||e.key==='n')navigate(1);
+  if(e.key==='ArrowLeft' ||e.key==='p')navigate(-1);
+  if(e.key==='b')triage('cart');
+  if(e.key==='w')triage('wish');
+  if(e.key==='x')triage('pass');
 });
 
-/* ═══════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════ */
+/* ═══════════════ INIT ═══════════════ */
 loadAll();
-initLiveChannel();
 renderList();
-try {
-  const sid = parseInt(localStorage.getItem('bm_current'));
-  if (sid && records.find(function(r){return r.id===sid;})) loadRecord(sid);
-} catch(e){}
+try{
+  const sid=parseInt(localStorage.getItem('bm_current'));
+  if(sid&&records.find(function(r){return r.id===sid;}))loadRecord(sid);
+}catch(e){}
 </script>
 </body>
 </html>
