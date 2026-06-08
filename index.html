@@ -373,11 +373,28 @@ function loadRecord(id){
   document.getElementById('npTitle').textContent=r.title;
   document.getElementById('npArtist').textContent=r.artist+(g?' · '+g.label:'');
   document.getElementById('npReasoning').textContent=r.reasoning||'';
-  const q=encodeURIComponent(r.title+' '+r.artist);
+  const ytSearchQ=encodeURIComponent(r.title+' '+r.artist+' vinyl');
   const frame=document.getElementById('ytFrame');
-  frame.src='https://www.youtube-nocookie.com/embed?listType=search&list='+q+'&autoplay=1&rel=0&modestbranding=1';
-  frame.style.display='block';
-  document.getElementById('ytPlaceholder').style.display='none';
+  const ytPlaceholder=document.getElementById('ytPlaceholder');
+  frame.style.display='none';
+  ytPlaceholder.style.display='flex';
+  ytPlaceholder.innerHTML='<div style="color:var(--faint);font-family:var(--mono);font-size:12px;">searching youtube...</div>';
+  fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&q='+ytSearchQ+'&type=video&maxResults=1&key=AIzaSyABSNli7aAe_qwO4yizoCsMv4alz2ZPX7c')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      const item=data.items&&data.items[0];
+      if(item){
+        const vid=item.id.videoId;
+        frame.src='https://www.youtube-nocookie.com/embed/'+vid+'?autoplay=1&rel=0&modestbranding=1';
+        frame.style.display='block';
+        ytPlaceholder.style.display='none';
+      } else {
+        ytPlaceholder.innerHTML='<div style="color:var(--faint);font-family:var(--mono);font-size:12px;">no video found<br><span style="font-size:10px;">use YouTube link below</span></div>';
+      }
+    })
+    .catch(function(){
+      ytPlaceholder.innerHTML='<div style="color:var(--faint);font-family:var(--mono);font-size:12px;">video search failed<br><span style="font-size:10px;">use YouTube link below</span></div>';
+    });
   const sq=encodeURIComponent(r.artist+' '+r.title);
   document.getElementById('linkShazam').href='https://www.shazam.com/search?q='+sq;
   document.getElementById('linkSpotify').href='https://open.spotify.com/search/'+sq;
