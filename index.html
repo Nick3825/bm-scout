@@ -219,6 +219,7 @@
       <a class="ext-link whosampled" id="linkWhosampled" target="_blank" rel="noopener">&#8767; WhoSampled</a>
       <a class="ext-link"            id="linkDiscogs"    target="_blank" rel="noopener">&#9724; Discogs</a>
       <a class="ext-link rc-link"    id="linkRC"         target="_blank" rel="noopener" style="display:none;">&#8599; Record City</a>
+      <a class="ext-link" id="linkYT" target="_blank" rel="noopener" style="display:none;border-color:rgba(255,0,0,.4);color:#ff6b6b;">&#9654; YouTube</a>
     </div>
     <div class="triage-bar">
       <button class="tbig pass" id="btnPass" onclick="triage('pass')" disabled>&#10005; Pass</button>
@@ -374,7 +375,7 @@ function loadRecord(id){
   document.getElementById('npReasoning').textContent=r.reasoning||'';
   const q=encodeURIComponent(r.title+' '+r.artist);
   const frame=document.getElementById('ytFrame');
-  frame.src='https://www.youtube.com/embed?listType=search&list='+q+'&autoplay=1&rel=0';
+  frame.src='https://www.youtube-nocookie.com/embed?listType=search&list='+q+'&autoplay=1&rel=0&modestbranding=1';
   frame.style.display='block';
   document.getElementById('ytPlaceholder').style.display='none';
   const sq=encodeURIComponent(r.artist+' '+r.title);
@@ -382,6 +383,10 @@ function loadRecord(id){
   document.getElementById('linkSpotify').href='https://open.spotify.com/search/'+sq;
   document.getElementById('linkWhosampled').href='https://www.whosampled.com/search/?q='+sq;
   document.getElementById('linkDiscogs').href='https://www.discogs.com/search/?q='+sq+'&type=release&format=vinyl';
+  const ytQ=encodeURIComponent(r.title+' '+r.artist+' vinyl');
+  const ytBtn=document.getElementById('linkYT');
+  ytBtn.href='https://www.youtube.com/results?search_query='+ytQ;
+  ytBtn.style.display='flex';
   const rcBtn=document.getElementById('linkRC');
   if(r.rcLink){rcBtn.href=r.rcLink;rcBtn.style.display='flex';}
   else{rcBtn.style.display='none';}
