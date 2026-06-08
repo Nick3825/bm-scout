@@ -524,6 +524,9 @@ function importFromUrl(){
     if(!raw)return;
     const incoming=JSON.parse(raw);
     if(!incoming||!incoming.length)return;
+    // Clear previous bookmarklet records — fresh queue each scan
+    records = records.filter(function(r){ return r.source !== 'bookmarklet'; });
+    currentId = null;
     let added=0;
     incoming.forEach(function(rec){
       const exists=records.some(function(r){
