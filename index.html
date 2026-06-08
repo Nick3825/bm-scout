@@ -227,7 +227,7 @@
     </div>
     <div class="metrics-panel" id="metricsPanel">
       <div class="empty-state">
-        <div>&#9673; bridge ready</div>
+        <div>&#9673; live connection ready</div>
         <div style="font-size:11px;color:var(--faint);">
           1. open Record City in another tab<br>
           2. drill down to genre / vinyl / latest<br>
@@ -239,14 +239,10 @@
   </div>
 </div>
 
-<!-- Hidden bridge iframe — shared localStorage relay -->
-<iframe id="bridgeFrame" src="https://nick3825.github.io/bm-scout/bridge.html"
-  style="display:none;width:0;height:0;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+
 
 <script>
 /* ═══════════════ CONFIG ═══════════════ */
-const BRIDGE_ORIGIN = 'https://nick3825.github.io';
-
 const GENRES = {
   hiphop:    {label:'Hip Hop',        color:'#a89aff',metrics:['bpm','bass','vocals','energy','danceability','valence'],profile:{bpm:87,bass:.73,vocals:.83,energy:.56,danceability:.73,valence:.44}},
   downtempo: {label:'Downtempo',      color:'#5ecfa8',metrics:['bpm','valence','danceability','energy','bass','vocals'],profile:{bpm:98,bass:.63,vocals:.38,energy:.53,danceability:.67,valence:.68}},
@@ -269,7 +265,6 @@ const GENRE_NOTES = {
 
 /* ═══════════════ STATE ═══════════════ */
 let records = [], currentId = null, nextId = 1000, autoAdvance = true, activeFilter = 'all';
-let bridgeReady = false, lastBridgeTs = '0';
 
 function saveAll(){try{localStorage.setItem('bm_records',JSON.stringify(records));}catch(e){}}
 function loadAll(){
@@ -279,73 +274,8 @@ function loadAll(){
   }catch(e){}
 }
 
-/* ═══════════════ BRIDGE (iframe postMessage) ═══════════════ */
-const bridge = document.getElementById('bridgeFrame');
-
-window.addEventListener('message', function(e) {
-  if (e.origin !== BRIDGE_ORIGIN) return;
-  const msg = e.data;
-
-  // Bridge ready
-  if (msg.bm_ready) {
-    bridgeReady = true;
-    setLiveStatus(false); // waiting, not connected yet
-    // Start polling for incoming records
-    pollBridge();
-    setInterval(pollBridge, 3000);
-    return;
-  }
-
-  // Data from bridge read
-  if (msg.bm_data !== undefined) {
-    try {
-      if (msg.bm_ts === lastBridgeTs) return; // nothing new
-      lastBridgeTs = msg.bm_ts;
-      const incoming = JSON.parse(msg.bm_data || '[]');
-      if (!incoming.length) return;
-
-      setLiveStatus(true);
-      let added = 0;
-      incoming.forEach(function(rec) {
-        const exists = records.some(function(r){
-          return r.title.toLowerCase()===(rec.title||'').toLowerCase() &&
-                 r.artist.toLowerCase()===(rec.artist||'').toLowerCase();
-        });
-        if (exists) return;
-        const genre = guessGenre(rec.title, rec.artist);
-        const p = (GENRES[genre]||GENRES.unknown).profile;
-        records.push({
-          id:nextId++, title:rec.title||'?', artist:rec.artist||'',
-          genre:genre, status:'none', source:'bookmarklet',
-          rcLink:rec.link||'', img:rec.img||'',
-          verdict:rec.verdict||'', reasoning:rec.reasoning||'',
-          bmScores:rec.scores||{}, bmAvg:rec.avg||0,
-          bpm:ri(Math.round(p.bpm*.88),Math.round(p.bpm*1.12)),
-          bass:rf(Math.max(0,p.bass-.18),Math.min(1,p.bass+.18)),
-          vocals:rf(Math.max(0,p.vocals-.18),Math.min(1,p.vocals+.18)),
-          energy:rf(Math.max(0,p.energy-.18),Math.min(1,p.energy+.18)),
-          danceability:rf(Math.max(0,p.danceability-.18),Math.min(1,p.danceability+.18)),
-          valence:rf(Math.max(0,p.valence-.18),Math.min(1,p.valence+.18))
-        });
-        added++;
-      });
-      if (added > 0) {
-        saveAll();
-        showToast(added+' record'+(added>1?'s':'')+' received from bookmarklet');
-        renderList();
-        if (!currentId) {
-          const first = records.find(function(r){return r.source==='bookmarklet'&&r.status==='none';});
-          if (first) loadRecord(first.id);
-        }
-      }
-    } catch(err) { console.log('Bridge parse error:', err); }
-  }
-});
-
-function pollBridge() {
-  if (!bridgeReady) return;
-  bridge.contentWindow.postMessage({bm_action:'read'}, BRIDGE_ORIGIN);
-}
+/* ═══════════════ LIVE STATUS ═══════════════ */
+// Status set when records arrive via URL import
 
 /* ═══════════════ HELPERS ═══════════════ */
 function norm(k,v){const m=META[k];return Math.max(0,Math.min(1,(v-m.min)/(m.max-m.min)));}
@@ -565,12 +495,56 @@ document.addEventListener('keydown',function(e){
   if(e.key==='x')triage('pass');
 });
 
+/* ═══════════════ URL IMPORT ═══════════════ */
+function importFromUrl(){
+  try{
+    const params=new URLSearchParams(window.location.search);
+    const bm=params.get('bm');
+    if(!bm)return;
+    const decoded=JSON.parse(decodeURIComponent(escape(atob(bm))));
+    if(!decoded||!decoded.length)return;
+    let added=0;
+    decoded.forEach(function(rec){
+      const exists=records.some(function(r){
+        return r.title.toLowerCase()===(rec.title||'').toLowerCase()&&
+               r.artist.toLowerCase()===(rec.artist||'').toLowerCase();
+      });
+      if(exists)return;
+      const genre=guessGenre(rec.title,rec.artist);
+      const p=(GENRES[genre]||GENRES.unknown).profile;
+      records.push({
+        id:nextId++,title:rec.title||'?',artist:rec.artist||'',
+        genre:genre,status:'none',source:'bookmarklet',
+        rcLink:rec.link||'',img:rec.img||'',
+        verdict:rec.verdict||'',reasoning:rec.reasoning||'',
+        bmScores:rec.scores||{},bmAvg:rec.avg||0,
+        bpm:ri(Math.round(p.bpm*.88),Math.round(p.bpm*1.12)),
+        bass:rf(Math.max(0,p.bass-.18),Math.min(1,p.bass+.18)),
+        vocals:rf(Math.max(0,p.vocals-.18),Math.min(1,p.vocals+.18)),
+        energy:rf(Math.max(0,p.energy-.18),Math.min(1,p.energy+.18)),
+        danceability:rf(Math.max(0,p.danceability-.18),Math.min(1,p.danceability+.18)),
+        valence:rf(Math.max(0,p.valence-.18),Math.min(1,p.valence+.18))
+      });
+      added++;
+    });
+    if(added>0){
+      saveAll();
+      showToast(added+' record'+(added>1?'s':'')+' loaded from bookmarklet');
+      setLiveStatus(true);
+      // Clean URL without reloading
+      window.history.replaceState({},'',window.location.pathname);
+    }
+  }catch(e){console.log('URL import error:',e);}
+}
+
 /* ═══════════════ INIT ═══════════════ */
 loadAll();
+importFromUrl();
 renderList();
 try{
   const sid=parseInt(localStorage.getItem('bm_current'));
   if(sid&&records.find(function(r){return r.id===sid;}))loadRecord(sid);
+  else if(records.length>0)loadRecord(records[0].id);
 }catch(e){}
 </script>
 </body>
