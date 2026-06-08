@@ -495,16 +495,15 @@ document.addEventListener('keydown',function(e){
   if(e.key==='x')triage('pass');
 });
 
-/* ═══════════════ URL IMPORT ═══════════════ */
+/* ═══════════════ HANDOFF IMPORT ═══════════════ */
 function importFromUrl(){
   try{
-    const params=new URLSearchParams(window.location.search);
-    const bm=params.get('bm');
-    if(!bm)return;
-    const decoded=JSON.parse(decodeURIComponent(escape(atob(bm))));
-    if(!decoded||!decoded.length)return;
+    const raw=localStorage.getItem('bm_handoff');
+    if(!raw)return;
+    const incoming=JSON.parse(raw);
+    if(!incoming||!incoming.length)return;
     let added=0;
-    decoded.forEach(function(rec){
+    incoming.forEach(function(rec){
       const exists=records.some(function(r){
         return r.title.toLowerCase()===(rec.title||'').toLowerCase()&&
                r.artist.toLowerCase()===(rec.artist||'').toLowerCase();
@@ -515,7 +514,7 @@ function importFromUrl(){
       records.push({
         id:nextId++,title:rec.title||'?',artist:rec.artist||'',
         genre:genre,status:'none',source:'bookmarklet',
-        rcLink:rec.link||'',img:rec.img||'',
+        rcLink:rec.link||'',img:'',
         verdict:rec.verdict||'',reasoning:rec.reasoning||'',
         bmScores:rec.scores||{},bmAvg:rec.avg||0,
         bpm:ri(Math.round(p.bpm*.88),Math.round(p.bpm*1.12)),
@@ -529,12 +528,12 @@ function importFromUrl(){
     });
     if(added>0){
       saveAll();
+      localStorage.removeItem('bm_handoff');
+      localStorage.removeItem('bm_handoff_ts');
       showToast(added+' record'+(added>1?'s':'')+' loaded from bookmarklet');
       setLiveStatus(true);
-      // Clean URL without reloading
-      window.history.replaceState({},'',window.location.pathname);
     }
-  }catch(e){console.log('URL import error:',e);}
+  }catch(e){console.log('Handoff error:',e);}
 }
 
 /* ═══════════════ INIT ═══════════════ */
