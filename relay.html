@@ -4,9 +4,9 @@
 <body>
 <script>
 try {
-  var d = new URLSearchParams(window.location.search).get('d');
-  if (d) {
-    var decoded = decodeURIComponent(escape(atob(decodeURIComponent(d))));
+  var hash = window.location.hash.slice(1);
+  if (hash) {
+    var decoded = decodeURIComponent(escape(atob(decodeURIComponent(hash))));
     localStorage.setItem('bm_handoff', decoded);
     localStorage.setItem('bm_handoff_ts', Date.now().toString());
   }
