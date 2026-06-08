@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Loading...</title></head>
+<body>
+<script>
+try {
+  var d = new URLSearchParams(window.location.search).get('d');
+  if (d) {
+    var decoded = decodeURIComponent(escape(atob(decodeURIComponent(d))));
+    localStorage.setItem('bm_handoff', decoded);
+    localStorage.setItem('bm_handoff_ts', Date.now().toString());
+  }
+} catch(e) {}
+window.location.href = './';
+</script>
+</body>
+</html>
